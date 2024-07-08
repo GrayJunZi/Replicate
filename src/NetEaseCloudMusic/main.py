@@ -1,21 +1,21 @@
-from bs4 import BeautifulSoup
-import requests
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-# 1. 请求网页
-website = "https://music.163.com/#/discover/toplist"
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
-}
-response = requests.get(website,headers=headers)
+website = 'https://music.163.com/#/discover/toplist'
+driver = webdriver.Edge()
+driver.get(website)
 
-# 2. 获取网页内容
-content = response.text
+iframe = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "g_iframe")))
+driver.switch_to.frame(iframe)
 
-# 3. 创建 BeautifulSoup
-soup = BeautifulSoup(content,'lxml')
+tr = driver.find_elements(By.XPATH, '//table[@class="m-table m-table-rank"]/tbody/tr')
 
-# 4. 获取歌曲列表
-iframe = soup.find('iframe', id = "g_iframe")
-table = soup.find('table', {
-    'class': 'm-table'
-})
+for song in tr:
+    td = song.find_elements(By.TAG_NAME, "td")
+    rank = td[0].text
+    title = td[1].find_element(By.TAG_NAME, 'b').text
+    artist = td[2].text
+
+driver.quit()
